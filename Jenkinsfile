@@ -12,17 +12,16 @@ pipeline {
 
         stage('Security Audit') {
             steps {
-                echo "🔒 Running npm audit..."
-                // Try to fix vulnerabilities (non-breaking changes first)
+                echo "🔒 Running npm audit (non-blocking)..."
+                // ✅ Will not fail pipeline even if audit finds issues
                 bat 'npm audit fix || exit 0'
-                // Force fix if required (might break dependencies)
                 bat 'npm audit fix --force || exit 0'
             }
         }
 
         stage('Test') {
             steps { 
-                // Allow builds to pass even if no tests exist
+                // ✅ Will not fail if no tests are found
                 bat 'npm test -- --watchAll=false --ci --passWithNoTests' 
             }
         }
@@ -45,7 +44,7 @@ pipeline {
             withCredentials([string(credentialsId: 'Slack_Cred', variable: 'SLACK_WEBHOOK')]) {
                 bat """
                 curl -X POST -H "Content-type: application/json" ^
-                --data "{\\"text\\": \\"SUCCESS ✅ Build #${BUILD_NUMBER} (main branch)\\"}" ^
+                --data "{\\"text\\": \\"✅ SUCCESS: Build #${BUILD_NUMBER} (main branch)\\"}" ^
                 %SLACK_WEBHOOK%
                 """
             }
@@ -54,7 +53,7 @@ pipeline {
             withCredentials([string(credentialsId: 'Slack_Cred', variable: 'SLACK_WEBHOOK')]) {
                 bat """
                 curl -X POST -H "Content-type: application/json" ^
-                --data "{\\"text\\": \\"FAILED ❌ Build #${BUILD_NUMBER} (main branch)\\"}" ^
+                --data "{\\"text\\": \\"❌ FAILED: Build #${BUILD_NUMBER} (main branch)\\"}" ^
                 %SLACK_WEBHOOK%
                 """
             }
