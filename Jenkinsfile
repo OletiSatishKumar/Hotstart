@@ -10,9 +10,7 @@ pipeline {
             steps { bat 'npm install' }
         }
 
-        stage('Lint') {
-            steps { bat 'npm run lint' }
-        }
+        // Removed Lint stage since no "lint" script in package.json
 
         stage('Test') {
             steps { bat 'npm test -- --watchAll=false --ci' }
@@ -36,7 +34,7 @@ pipeline {
             withCredentials([string(credentialsId: 'Slack_Cred', variable: 'SLACK_WEBHOOK')]) {
                 bat """
                 curl -X POST -H "Content-type: application/json" ^
-                --data "{\\"text\\": \\"✅ SUCCESS: Build #${BUILD_NUMBER} for branch ${BRANCH_NAME}\\"}" ^
+                --data "{\\"text\\": \\"✅ SUCCESS: Build #${BUILD_NUMBER} (main branch)\\"}" ^
                 %SLACK_WEBHOOK%
                 """
             }
@@ -45,7 +43,7 @@ pipeline {
             withCredentials([string(credentialsId: 'Slack_Cred', variable: 'SLACK_WEBHOOK')]) {
                 bat """
                 curl -X POST -H "Content-type: application/json" ^
-                --data "{\\"text\\": \\"❌ FAILED: Build #${BUILD_NUMBER} for branch ${BRANCH_NAME}\\"}" ^
+                --data "{\\"text\\": \\"❌ FAILED: Build #${BUILD_NUMBER} (main branch)\\"}" ^
                 %SLACK_WEBHOOK%
                 """
             }
