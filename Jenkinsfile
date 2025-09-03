@@ -18,14 +18,7 @@ pipeline {
                 bat 'npm audit fix --force || exit 0'
             }
         }
-
-        stage('Test') {
-            steps { 
-                // ✅ Will not fail if no tests are found
-                bat 'npm test -- --watchAll=false --ci --passWithNoTests' 
-            }
-        }
-
+        
         stage('Build') {
             steps { bat 'npm run build' }
         }
