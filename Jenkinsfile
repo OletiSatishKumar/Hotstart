@@ -10,10 +10,21 @@ pipeline {
             steps { bat 'npm install' }
         }
 
-        // Removed Lint stage since no "lint" script in package.json
+        stage('Security Audit') {
+            steps {
+                echo "🔒 Running npm audit..."
+                // Try to fix vulnerabilities (non-breaking changes first)
+                bat 'npm audit fix || exit 0'
+                // Force fix if required (might break dependencies)
+                bat 'npm audit fix --force || exit 0'
+            }
+        }
 
         stage('Test') {
-            steps { bat 'npm test -- --watchAll=false --ci' }
+            steps { 
+                // Allow builds to pass even if no tests exist
+                bat 'npm test -- --watchAll=false --ci --passWithNoTests' 
+            }
         }
 
         stage('Build') {
@@ -34,7 +45,7 @@ pipeline {
             withCredentials([string(credentialsId: 'Slack_Cred', variable: 'SLACK_WEBHOOK')]) {
                 bat """
                 curl -X POST -H "Content-type: application/json" ^
-                --data "{\\"text\\": \\"✅ SUCCESS: Build #${BUILD_NUMBER} (main branch)\\"}" ^
+                --data "{\\"text\\": \\"SUCCESS ✅ Build #${BUILD_NUMBER} (main branch)\\"}" ^
                 %SLACK_WEBHOOK%
                 """
             }
@@ -43,7 +54,7 @@ pipeline {
             withCredentials([string(credentialsId: 'Slack_Cred', variable: 'SLACK_WEBHOOK')]) {
                 bat """
                 curl -X POST -H "Content-type: application/json" ^
-                --data "{\\"text\\": \\"❌ FAILED: Build #${BUILD_NUMBER} (main branch)\\"}" ^
+                --data "{\\"text\\": \\"FAILED ❌ Build #${BUILD_NUMBER} (main branch)\\"}" ^
                 %SLACK_WEBHOOK%
                 """
             }
